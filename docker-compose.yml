@@ -1,0 +1,35 @@
+version: '2.0'
+
+services:
+  confluence:
+    image: cptactionhank/atlassian-confluence:eap
+    container_name: confluence
+    restart: always
+    links:
+      - mysql
+    volumes:
+      # E necessario mudar ownership dos volumes montados:
+      # mkdir -p /opt/atlassian/confluence/logs
+      # mkdir -p /opt/atlassian/confluence/var/logs
+      # chown -R daemon:daemon /opt/atlassian/confluence
+      - /opt/atlassian/confluence/var:/var/atlassian/confluence
+      - /opt/atlassian/confluence/logs:/opt/atlassian/confluence/logs
+    environment:
+      - VIRTUAL_HOST=confluence.labs.riocard.com
+      - VIRTUAL_PORT=8090
+    ports:
+      - "8082:8090"
+
+  mysql:
+    # The version 5.7 onwards requires TLS connections!
+    image: mysql:5.5
+    container_name: confluence_mysql
+    restart: always
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=confluence
+      - MYSQL_USER=confluence
+      - MYSQL_PASSWORD=confluence
+    volumes:
+      - /opt/mysql/var:/var/lib/mysql
+    command: --character-set-server=utf8 --collation-server=utf8_bin --default-storage-engine=INNODB --max-allowed-packet=256M --innodb_log_file_size=256M
